@@ -116,7 +116,7 @@
         <!--Diary Detail View Controller-->
         <scene sceneID="Dsu-DK-EKC">
             <objects>
-                <viewController id="Qum-ne-DC0" customClass="DiaryDetailViewController" customModule="Diary" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="DiaryDetailViewController" id="Qum-ne-DC0" customClass="DiaryDetailViewController" customModule="Diary" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="k0R-TX-sjV">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -179,6 +179,9 @@
                                         <rect key="frame" x="0.0" y="0.0" width="48.5" height="31"/>
                                         <state key="normal" title="Button"/>
                                         <buttonConfiguration key="configuration" style="plain" title="수정"/>
+                                        <connections>
+                                            <action selector="tapEditButton:" destination="Qum-ne-DC0" eventType="touchUpInside" id="hzw-T3-IVJ"/>
+                                        </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="UWv-rX-RbC">
                                         <rect key="frame" x="98.5" y="0.0" width="48.5" height="31"/>
@@ -186,6 +189,9 @@
                                         <buttonConfiguration key="configuration" style="plain" title="삭제">
                                             <color key="baseForegroundColor" systemColor="systemRedColor"/>
                                         </buttonConfiguration>
+                                        <connections>
+                                            <action selector="tapDeleteButton:" destination="Qum-ne-DC0" eventType="touchUpInside" id="hPS-FR-Yqd"/>
+                                        </connections>
                                     </button>
                                 </subviews>
                             </stackView>
@@ -210,6 +216,11 @@
                             <constraint firstItem="4IS-0B-XmB" firstAttribute="top" secondItem="VcF-d6-tNw" secondAttribute="bottom" constant="12" id="s5B-V0-xEs"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="contentsTextView" destination="4IS-0B-XmB" id="QcU-CY-X4O"/>
+                        <outlet property="dateLabel" destination="uKq-Dh-ukj" id="PhZ-xK-KBO"/>
+                        <outlet property="titleLabel" destination="Bkc-dm-9Fw" id="JSY-Vv-a3K"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Cms-Pf-eB0" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -315,7 +326,7 @@
         <!--일기 작성-->
         <scene sceneID="64B-y3-I3A">
             <objects>
-                <viewController id="mqI-6u-bNG" customClass="WriteDiaryViewController" customModule="Diary" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="WriteDiaryViewController" id="mqI-6u-bNG" customClass="WriteDiaryViewController" customModule="Diary" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Z5c-YQ-L6V">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

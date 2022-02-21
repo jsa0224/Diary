@@ -7,6 +7,12 @@
 
 import UIKit
 
+//일기 수정
+enum DiaryEditorMode {
+case new
+    case edit(IndexPath, Diary)
+}
+
 //일기가 작성된 다이어리 객체 전달
 protocol WriteDiaryViewDelegate: AnyObject {
     func didSelectRegister(diary: Diary)
@@ -22,6 +28,7 @@ class WriteDiaryViewController: UIViewController {
     private let datePicker = UIDatePicker()
     private var diaryDate: Date?
     weak var delegate: WriteDiaryViewDelegate?
+    var diaryEditorMode: DiaryEditorMode = .new
    
     //화면에 호출하기
     override func viewDidLoad() {
@@ -29,7 +36,31 @@ class WriteDiaryViewController: UIViewController {
         self.configureContentsTextView()
         self.configureDatePicker()
         self.confirmButton.isEnabled = false
+        self.configureEditorMode()
         self.configureInputField()
+    }
+    
+    //일기 수정 화면 구성하기
+    private func configureEditorMode() {
+        switch self.diaryEditorMode {
+          case let .edit(_, diary):
+            self.titleTextField.text = diary.title
+            self.contentsTextView.text = diary.contents
+            self.dateTextField.text = self.dateToString(date: diary.date)
+            self.diaryDate = diary.date
+            self.confirmButton.title = "수정"
+            
+        default:
+            break
+        }
+    }
+    
+    //Date 타입의 데이터를 문자열로 변환
+    private func dateToString(date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yy년 MM월 dd일(EEEEE)"
+        formatter.locale = Locale(identifier: "ko_KR")
+        return formatter.string(from: date)
     }
     
     //내용 텍스트필드의 테두리 잡아주기
@@ -63,6 +94,21 @@ class WriteDiaryViewController: UIViewController {
         guard let contents = self.contentsTextView.text else { return }
         guard let date = self.diaryDate else { return }
         let diary = Diary(title: title, contents: contents, date: date, isStar: false)
+        
+        //수정된 다이어리 객체
+        switch self.diaryEditorMode {
+        case .new:
+            self.delegate?.didSelectRegister(diary: diary)
+            
+        case let .edit(indexPath, _):
+            NotificationCenter.default.post(
+                name: NSNotification.Name("editDiary"),
+                object: diary,
+                userInfo: [
+                    "indexPath.row": indexPath.row
+                ]
+            )
+        }
         self.delegate?.didSelectRegister(diary: diary)
         self.navigationController?.popViewController(animated: true)
     }
