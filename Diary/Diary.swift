@@ -9,6 +9,7 @@ import Foundation
 
 //다이어리 구조체 생성 - 저장 용도
 struct Diary {
+    var uuidString: String
     var title: String
     var contents: String
     var date: Date

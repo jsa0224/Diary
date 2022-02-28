@@ -28,6 +28,18 @@ class ViewController: UIViewController {
             name: NSNotification.Name("editDiary"),
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(starDiaryNotification(_:)),
+            name: NSNotification.Name("starDiary"),
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(deleteDiaryNotification(_:)),
+            name: NSNotification.Name("deleteDiary"),
+            object: nil
+        )
     }
     
     //작성된 일기를 콜렉션 뷰에 추가
@@ -40,25 +52,35 @@ class ViewController: UIViewController {
     
     @objc func editDiaryNotification(_ notification: Notification) {
         guard let diary = notification.object as? Diary else { return }
-        guard let row = notification.userInfo?["indexPath.row"] as? Int else { return }
-        self.diaryList[row] = diary
+        guard let index = self.diaryList.firstIndex(where: { $0.uuidString == diary.uuidString }) else { return }
+        self.diaryList[index] = diary
         self.diaryList = self.diaryList.sorted(by: {
             $0.date.compare($1.date) == .orderedDescending
         })
         self.collectionView.reloadData()
     }
     
-    //일기 작성의 화면 이동은 segue를 통해서 이동하기 때문에 prepare 메서드 오버라이드
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let writeDiaryViewController = segue.destination as? WriteDiaryViewController {
-            writeDiaryViewController.delegate = self
-        }
+    @objc func starDiaryNotification(_ notification: Notification) {
+        guard let starDiary = notification.object as? [String: Any] else { return }
+        guard let isStar = starDiary["isStar"] as? Bool else { return }
+        guard let uuidString = starDiary["uuidString"] as? String else { return }
+        guard let index = self.diaryList.firstIndex(where: { $0.uuidString == uuidString }) else { return }
+        self.diaryList[index].isStar = isStar
     }
+    
+    @objc func deleteDiaryNotification(_ notification: Notification) {
+        guard let uuidString = notification.object as? String else { return }
+        guard let index = self.diaryList.firstIndex(where: { $0.uuidString == uuidString }) else { return }
+        self.diaryList.remove(at: index)
+        self.collectionView.deleteItems(at: [IndexPath(row: index, section: 0)])
+    }
+
     
     //앱이 꺼져도 다이어리가 저장되게 하는 매서드
     private func saveDiaryList() {
         let date = self.diaryList.map {
             [
+                "uuidString": $0.uuidString,
                 "title": $0.title,
                 "contents": $0.contents,
                 "date": $0.date,
@@ -74,11 +96,12 @@ class ViewController: UIViewController {
         let userDefaults = UserDefaults.standard
         guard let data = userDefaults.object(forKey: "diaryList") as? [[String: Any]] else { return }
         self.diaryList = data.compactMap {
+            guard let uuidString = $0["uuidString"] as? String else { return nil }
             guard let title = $0["title"] as? String else { return nil }
             guard let contents = $0["contents"] as? String else { return nil }
             guard let date = $0["date"] as? Date else { return nil }
             guard let isStar = $0["isStar"] as? Bool else { return nil }
-            return Diary(title: title, contents: contents, date: date, isStar: isStar)
+            return Diary(uuidString: uuidString, title: title, contents: contents, date: date, isStar: isStar)
         }
         //최신 날짜로 정렬되게 만들기
         self.diaryList = self.diaryList.sorted(by: {
@@ -91,18 +114,6 @@ class ViewController: UIViewController {
         formatter.dateFormat = "yy년 MM월 dd일(EEEEE)"
         formatter.locale = Locale(identifier: "ko_KR")
         return formatter.string(from: date)
-    }
-}
-
-//일기가 작성되면 didSelectRegister 메서드 파라미터를 통해 작성된 일기의 내용이 담겨져 있는 다이어리 객체 전달받음
-extension ViewController: WriteDiaryViewDelegate {
-    func didSelectRegister(diary: Diary) {
-        //새로운 일기가 추가될 때마다 다이어리 객체에 등록
-        self.diaryList.append(diary)
-        self.diaryList = self.diaryList.sorted(by: {
-            $0.date.compare($1.date) == .orderedDescending
-        })
-        self.collectionView.reloadData()
     }
 }
 
@@ -135,15 +146,19 @@ extension ViewController: UICollectionViewDelegate {
         let diary = self.diaryList[indexPath.row]
         viewController.diary = diary
         viewController.indexPath = indexPath
-        viewController.delegate = self
         self.navigationController?.pushViewController(viewController, animated: true)
     }
 }
 
-//일기 삭제하기
-extension ViewController: DiaryDetailViewDelegate {
-    func didSelectDelegate(indexPath: IndexPath) {
-        self.diaryList.remove(at: indexPath.row)
-        self.collectionView.deleteItems(at: [indexPath])
+//일기가 작성되면 didSelectRegister 메서드 파라미터를 통해 작성된 일기의 내용이 담겨져 있는 다이어리 객체 전달받음
+extension ViewController: WriteDiaryViewDelegate {
+    func didSelectRegister(diary: Diary) {
+        //새로운 일기가 추가될 때마다 다이어리 객체에 등록
+        self.diaryList.append(diary)
+        self.diaryList = self.diaryList.sorted(by: {
+            $0.date.compare($1.date) == .orderedDescending
+        })
+        self.collectionView.reloadData()
     }
 }
+
